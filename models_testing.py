@@ -1,3 +1,4 @@
+# %%
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -153,8 +154,8 @@ def printImbalancedClassificationReport(y_test, predictions):
 
 
 # %% 
-X = pd.read_csv('RF_important_features.csv.gzip', compression = 'gzip')
-y = pd.read_csv('y.csv')
+X = pd.read_csv('/Users/wcldxgz/Documents/DATA245/project/RF_important_features.csv.gzip', compression = 'gzip')
+y = pd.read_csv('/Users/wcldxgz/Documents/DATA245/project/y.csv')
 y = y.values.reshape(-1)
 
 
@@ -363,3 +364,28 @@ ind_os_cv = fitMultipleEstimatorsWithCV(
 # Average recall and standard deviation 
 # 0.5906857574310744 +/- 0.031092631065272963
 # Finished training SGDC in 14.984627962112427 seconds. 
+
+# %%
+estimators = [('DT', DecisionTreeClassifier(random_state = 111)),
+              ('SVC', LinearSVC(dual = False,
+                     random_state = 111,
+                     max_iter = 1000)),
+              ('SGDC', SGDClassifier(max_iter = 1000, verbose = 0,
+                          n_jobs = -1, random_state = 111,
+                          learning_rate = 'optimal',
+                          early_stopping = True))]
+
+from sklearn.ensemble import StackingClassifier
+final_estimator = MLPClassifier(learning_rate = 'invscaling',
+                         random_state = 111,
+                         early_stopping = True)
+reg = StackingClassifier(
+    estimators = estimators,
+    final_estimator = final_estimator)
+
+from sklearn.datasets import load_diabetes
+X, y = load_diabetes(return_X_y = True)
+print("Starting to fit")
+reg.fit(X_train, y_train)
+y_pred_SC = reg.predict(X_test)
+print(recall_score(y_test, y_pred_SC)) # 0.00012212316676473526
