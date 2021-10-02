@@ -366,26 +366,18 @@ ind_os_cv = fitMultipleEstimatorsWithCV(
 # Finished training SGDC in 14.984627962112427 seconds. 
 
 # %%
-estimators = [('DT', DecisionTreeClassifier(random_state = 111)),
-              ('SVC', LinearSVC(dual = False,
-                     random_state = 111,
-                     max_iter = 1000)),
-              ('SGDC', SGDClassifier(max_iter = 1000, verbose = 0,
-                          n_jobs = -1, random_state = 111,
-                          learning_rate = 'optimal',
-                          early_stopping = True))]
+individual_pipelines = [imblearn_pipeline(MinMaxScaler(), \
+                                          RandomUnderSampler(random_state=111), \
+                                          estimator) for estimator in estimator_dict.values()]
 
 from sklearn.ensemble import StackingClassifier
-final_estimator = MLPClassifier(learning_rate = 'invscaling',
-                         random_state = 111,
-                         early_stopping = True)
+estimators = list(zip([k for k in estimator_dict.keys()], individual_pipelines))
 reg = StackingClassifier(
     estimators = estimators,
-    final_estimator = final_estimator)
+    final_estimator = estimator_dict['LR'])
 
-from sklearn.datasets import load_diabetes
-X, y = load_diabetes(return_X_y = True)
 print("Starting to fit")
 reg.fit(X_train, y_train)
 y_pred_SC = reg.predict(X_test)
-print(recall_score(y_test, y_pred_SC)) # 0.00012212316676473526
+print(recall_score(y_test, y_pred_SC)) 
+# 0.07466166331753134
