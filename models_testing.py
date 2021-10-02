@@ -165,10 +165,6 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # %% testing individual models
 estimator_dict = {
-    'LR': LogisticRegression(max_iter = 100, 
-                             n_jobs = -1, 
-                             random_state = 111,
-                             solver = 'saga'),
     'DT': DecisionTreeClassifier(random_state = 111),
     'ANN': MLPClassifier(learning_rate = 'invscaling',
                          random_state = 111,
@@ -180,10 +176,14 @@ estimator_dict = {
                           n_jobs = -1, random_state = 111,
                           learning_rate = 'optimal',
                           early_stopping = True,
-                          )
+                          ),
+    'LR': LogisticRegression(max_iter = 100, 
+                             n_jobs = -1, 
+                             random_state = 111,
+                             solver = 'saga')
     }
 
-fitted = fitMultipleEstimators(X_train, y_train, estimator_dict)
+# fitted = fitMultipleEstimators(X_train, y_train, estimator_dict)
 
 # random state = 111 for estimator and sampler
 
@@ -371,13 +371,15 @@ individual_pipelines = [imblearn_pipeline(MinMaxScaler(), \
                                           estimator) for estimator in estimator_dict.values()]
 
 from sklearn.ensemble import StackingClassifier
-estimators = list(zip([k for k in estimator_dict.keys()], individual_pipelines))
+estimators = list(zip(list(estimator_dict.keys())[:-1], individual_pipelines[:-1]))
 reg = StackingClassifier(
     estimators = estimators,
-    final_estimator = estimator_dict['LR'])
+    final_estimator = individual_pipelines[-1])
 
 print("Starting to fit")
 reg.fit(X_train, y_train)
 y_pred_SC = reg.predict(X_test)
 print(recall_score(y_test, y_pred_SC)) 
-# 0.07466166331753134
+# 0.6876755520522243
+
+# %%
